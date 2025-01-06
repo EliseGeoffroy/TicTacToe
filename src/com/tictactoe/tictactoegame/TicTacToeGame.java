@@ -1,5 +1,6 @@
 package com.tictactoe.tictactoegame;
 
+import com.tictactoe.exceptions.TictactoeMismatchInputException;
 import com.tictactoe.stringconstants.StringConstants;
 
 import java.util.ArrayList;
@@ -24,14 +25,24 @@ public class TicTacToeGame {
         add(7);
     }};
 
-
-    public boolean oneRound(char symbol){
+    /**
+     * Plays one round for current player (cell choice and symbol placement at the right place
+     * + checks if game is over
+     * @param player Object with attributes name and symbol
+     * @return boolean at true if game is over (exaequo or winner)
+     */
+    public boolean oneRound(Player player){
         cellChoice();
-        cellPlacement (symbol);
+        cellPlacement (player.symbol);
         System.out.println(this);
-        return endOfGame(symbol);
+        return endOfGame(player);
     }
 
+    /**
+     * asks the player the number of his chosen cell
+     * checks if number OK (if it's an Integer, (if it exists and if this cell isn't already filled) thanks to the validCoor()method)
+     * calculates line and column
+     */
     public void cellChoice() {
         var coorIsValid= false;
 
@@ -39,43 +50,71 @@ public class TicTacToeGame {
             System.out.println("Choisissez une case (entre 1 et 9): ");
             var scanner = new Scanner(System.in);
             try {
-                coor = scanner.nextInt();
+                String entry=scanner.nextLine();
+                if (entry.equals("exit")){
+                    System.out.println("Vous quittez la partie.");
+                    System.exit(0);
+                } else {
+                    coor = Integer.parseInt(entry);
+
+                }
                 line =lineCalcFunc(coor);
                 col=colCalcFunc(coor);
 
                 coorIsValid=validCoor();
             }
-            catch(Exception e){
-                System.out.println("Ce n'est pas un entier...");
+            catch (NumberFormatException e){
+                System.out.println("Attention, ce n'est pas un entier...");
+            }
+            catch (TictactoeMismatchInputException t){
+                System.out.println(t.getMessage());
             }
 
         }while (!coorIsValid);
 
     }
 
-    public boolean validCoor() {
+    /**
+     * checks if cells exists and isn't already filled
+     * @return true if no problem
+     * @throws TictactoeMismatchInputException (if celle doesn't exist or is filled)
+     */
+    public boolean validCoor() throws TictactoeMismatchInputException{
         if (coor<1||coor>9){
-            System.out.println("Ceci n'est pas le numéro d'une case, vous ne pouvez pas la choisir.");
-            return false;
+            throw new TictactoeMismatchInputException("Ceci n'est pas le numéro d'une case, vous ne pouvez pas la choisir.");
         }else {
             if (gameMap[line][col]=='X'||gameMap[line][col]=='O'){
-                System.out.println("Cette case a déjà été choisie... Concentrez-vous un peu, que diable!");
-                return false;
+                throw new TictactoeMismatchInputException("Cette case a déjà été choisie... Concentrez-vous un peu, que diable!");
             }
         }
         return true;
     }
 
+    /**
+     * places the right symbol in the chosen cell
+     * @param symbol : current player's cell
+     */
     public void cellPlacement(char symbol){
         gameMap[line][col]=symbol;
     }
-    public boolean endOfGame(char symbol) {
-        if (victoryChecking(symbol)){
-            System.out.println("Bravo! Vous avez gagné!");
+
+    /**
+     * checks if game is over by calling two methods victoryChecking() and exAequo();
+     * @param player : Object with attributes symbol and name
+     * @return true if game is over
+     */
+    public boolean endOfGame(Player player ) {
+        if (victoryChecking(player.symbol)){
+            System.out.println("Nous avons un winner! : "+ player.name+ " a gagné!");
         }
-        return (victoryChecking(symbol)) || exAequo();
+        return (victoryChecking(player.symbol)) || exAequo();
     }
 
+    /**
+     * Checks all the possible alignments
+     * @param symbol : current player's symbol
+     * @return true if there is at least one alignment OK (stops at the first found alignment)
+     */
     public boolean victoryChecking(char symbol){
         int countSymbol;
         //horizontal
@@ -107,6 +146,10 @@ public class TicTacToeGame {
         return(countDiagonal("second",symbol)==3);
     }
 
+    /**
+     * checks if it remains some empty cells
+     * @return false as soon as it finds an empty cell, either true
+     */
     public boolean exAequo(){
         for (char[] line : gameMap){
             for (char charac : line){
@@ -120,29 +163,19 @@ public class TicTacToeGame {
     }
 
    public int lineCalcFunc(int coor){
-       int lineCalc = (int) Math.floor((double) coor/3);
-
-       //multiple of 3 case
-       if (coor%3==0){
-           lineCalc--;
-       }
-
-       return lineCalc;
+        return (int) Math.floor((double) (coor-1)/3);
    }
 
     public int colCalcFunc(int coor){
-
-        int colCalc = (coor%3)-1;
-
-        //multiple of 3 case
-        if (coor%3==0){
-
-            colCalc=2;
-        }
-
-        return colCalc;
+        return (coor-1)%3;
     }
 
+    /**
+     * checks diagonal alignments
+     * @param whichDiagonal : specifies what diagonal is about
+     * @param symbol : current player's symbol
+     * @return total symbol number on the diagonal
+     */
     public int countDiagonal(String whichDiagonal, char symbol){
         List<Integer> diagonalList;
         int countSymbol=0;
