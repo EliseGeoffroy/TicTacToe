@@ -104,10 +104,11 @@ public class TicTacToeGame {
      * @return true if game is over
      */
     public boolean endOfGame(Player player ) {
-        if (victoryChecking(player.symbol)){
+    var win = victoryChecking(player.symbol)
+        if (win) {
             System.out.println("Nous avons un winner! : "+ player.name+ " a gagné!");
         }
-        return (victoryChecking(player.symbol)) || exAequo();
+        return win || exAequo();
     }
 
     /**
