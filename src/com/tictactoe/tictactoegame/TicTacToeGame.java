@@ -176,15 +176,9 @@ public class TicTacToeGame {
      * @param symbol : current player's symbol
      * @return total symbol number on the diagonal
      */
-    public int countDiagonal(String whichDiagonal, char symbol){
+    public int countDiagonal(List<Integer> diagonalList, char symbol){
         List<Integer> diagonalList;
         int countSymbol=0;
-
-        if (whichDiagonal.equals("first")){
-            diagonalList=coorFirstDiagPossible;
-        }else {
-            diagonalList=coorSecondDiagPossible;
-        }
 
         if (diagonalList.contains(coor)) {
             for (int coorDiag : diagonalList){
