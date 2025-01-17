@@ -3,9 +3,7 @@ package com.tictactoe.tictactoegame;
 import com.tictactoe.exceptions.TictactoeMismatchInputException;
 import com.tictactoe.stringconstants.StringConstants;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 
 public class TicTacToeGame {
@@ -14,16 +12,17 @@ public class TicTacToeGame {
     private int coor;
     private int line;
     private int col;
-    private static final List<Integer> coorFirstDiagPossible= new ArrayList(){{
-        add(1);
-        add(5);
-        add(9);
-    }};
-    private static final List<Integer> coorSecondDiagPossible= new ArrayList(){{
-        add(3);
-        add(5);
-        add(7);
-    }};
+    private static final List<Integer> coorFirstDiagPossible= List.of(1,5,9);
+    private static final List<Integer> coorSecondDiagPossible= List.of(3,5,7);
+    private static final List<Integer> coorFirstVerticalPossible= List.of(1,4,7);
+    private static final List<Integer> coorSecondVerticalPossible= List.of(2,5,8);
+    private static final List<Integer> coorThirdVerticalPossible= List.of(3,6,9);
+    private static final List<Integer> coorFirstHorizontalPossible= List.of(1,2,3);
+    private static final List<Integer> coorSecondHorizontalPossible= List.of(4,5,6);
+    private static final List<Integer> coorThirdHorizontalPossible= List.of(7,8,9);
+    private static final List<List<Integer>> arrangementsTable= List.of( coorFirstHorizontalPossible,coorSecondHorizontalPossible,coorThirdHorizontalPossible,coorFirstVerticalPossible,
+            coorSecondVerticalPossible,coorThirdVerticalPossible,coorFirstDiagPossible,coorSecondDiagPossible);
+
 
     /**
      * Plays one round for current player (cell choice and symbol placement at the right place
@@ -43,7 +42,7 @@ public class TicTacToeGame {
      * checks if number OK (if it's an Integer, (if it exists and if this cell isn't already filled) thanks to the validCoor()method)
      * calculates line and column
      */
-    public void cellChoice() {
+    private void cellChoice() {
         var coorIsValid= false;
 
         do {
@@ -79,7 +78,7 @@ public class TicTacToeGame {
      * @return true if no problem
      * @throws TictactoeMismatchInputException (if celle doesn't exist or is filled)
      */
-    public boolean validCoor() throws TictactoeMismatchInputException{
+    private boolean validCoor() throws TictactoeMismatchInputException{
         if (coor<1||coor>9){
             throw new TictactoeMismatchInputException("Ceci n'est pas le numéro d'une case, vous ne pouvez pas la choisir.");
         }else {
@@ -94,7 +93,7 @@ public class TicTacToeGame {
      * places the right symbol in the chosen cell
      * @param symbol : current player's cell
      */
-    public void cellPlacement(char symbol){
+    private void cellPlacement(char symbol){
         gameMap[line][col]=symbol;
     }
 
@@ -103,8 +102,8 @@ public class TicTacToeGame {
      * @param player : Object with attributes symbol and name
      * @return true if game is over
      */
-    public boolean endOfGame(Player player ) {
-    var win = victoryChecking(player.symbol)
+    private boolean endOfGame(Player player ) {
+    var win = victoryChecking(player.symbol);
         if (win) {
             System.out.println("Nous avons un winner! : "+ player.name+ " a gagné!");
         }
@@ -116,42 +115,30 @@ public class TicTacToeGame {
      * @param symbol : current player's symbol
      * @return true if there is at least one alignment OK (stops at the first found alignment)
      */
-    public boolean victoryChecking(char symbol){
+    private boolean victoryChecking(char symbol){
         int countSymbol;
         //horizontal
-        countSymbol=0;
-        for (char charac : gameMap[line]){
-            if (charac==symbol){
-                countSymbol++;
+        for (List<Integer> list : arrangementsTable){
+            if (list.contains(coor)){
+                countSymbol=0;
+              for ( Integer coorCell : list){
+                  if (gameMap[lineCalcFunc(coorCell)][colCalcFunc(coorCell)]==symbol){
+                    countSymbol++;
+                  }
+              }
+              if (countSymbol==3){
+                  return true;
+              }
             }
         }
-        if (countSymbol==3){
-            return true;
-        }
-        //vertical
-        countSymbol=0;
-        for (char [] line : gameMap){
-            if (line[col]==symbol){
-                countSymbol++;
-            }
-        }
-        if (countSymbol==3){
-            return true;
-        }
-        //first diagonal
-        if (countDiagonal("first",symbol)==3){
-            return true;
-        }
-
-        //second diagonal
-        return(countDiagonal("second",symbol)==3);
+        return false;
     }
 
     /**
      * checks if it remains some empty cells
      * @return false as soon as it finds an empty cell, either true
      */
-    public boolean exAequo(){
+    private boolean exAequo(){
         for (char[] line : gameMap){
             for (char charac : line){
                 if ((charac!='X')&&(charac!='O')){
@@ -163,32 +150,12 @@ public class TicTacToeGame {
         return true;
     }
 
-   public int lineCalcFunc(int coor){
+   private int lineCalcFunc(int coor){
         return (int) Math.floor((double) (coor-1)/3);
    }
 
-    public int colCalcFunc(int coor){
+    private int colCalcFunc(int coor){
         return (coor-1)%3;
-    }
-
-    /**
-     * checks diagonal alignments
-     * @param whichDiagonal : specifies what diagonal is about
-     * @param symbol : current player's symbol
-     * @return total symbol number on the diagonal
-     */
-    public int countDiagonal(List<Integer> diagonalList, char symbol){
-        List<Integer> diagonalList;
-        int countSymbol=0;
-
-        if (diagonalList.contains(coor)) {
-            for (int coorDiag : diagonalList){
-                if (gameMap[lineCalcFunc(coorDiag)][colCalcFunc(coorDiag)]==symbol){
-                    countSymbol++;
-                }
-            }
-        }
-        return countSymbol;
     }
 
     @Override
